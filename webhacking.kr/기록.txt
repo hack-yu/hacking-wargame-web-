@@ -1,0 +1,1678 @@
+webhacking.kr  정리
+
+안되는 문제 7,19,36
+
+
+
+Challenge 
+
+
+
+1번문제: 
+
+[일반적 풀이]
+
+첫 페이지로 진입을 하면 index.phps가 적혀있다.  index.phps로 접근
+
+
+
+소스코드 내용
+
+소스코드가 보인다. _COOKIE[user_lv] 값이 없는 경우 1로 설정이 되고, 리프레쉬가 됨.
+
+_COOKIE[user_lv]가 0~9 숫자가 값이라면 1로 설정됨. 
+
+_COOKIE[user_lv]가 6이상이면 1로 설정됨
+
+_COOKIE[user_lv]가 5보다 큰 solve() 호출
+
+
+
+
+
+0~9중 중 5보다 크고 6보다 작은 숫자로 _COOKIE[user_lv] 값을 설정해 solve()가 호출되면 문제가 해결될 것이라 판단 정수만 나와있고 실수가 생각났다. 
+
+
+
+5<5.1 ~ 5.9 < 6 와 같이 쿠키 값을 변경 후 문제가 해결됨
+
+
+
+
+
+2번문제:
+
+게시판 blind sql injection 
+zip파일 다운로드(암호걸려있음)
+admin page blind sql injection zip 파일 비번알아냄
+zip압축풀고 html파일이 나옴 
+html파일 열면 2번 플래그가 있음
+
+2번 게시판 pw: 7598522ae 
+admin page pw:0nly_admin 
+zip파일 pw:@aM1n_nnanual
+2번 플래그:HacKed_by_n0b0dY
+
+
+
+
+
+
+
+3번문제: 
+
+1)퍼즐 각 행, 열 숫자를 보고 검은색을 만들어라
+
+
+
+http://webhacking.kr/challenge/web/web-03/index.php?_1=1&_2=0&_3=1&_4=0&_5=1&_6=0&_7=0&_8=0&_9=0&_10=0&_11=0&_12=1&_13=1&_14=1&_15=0&_16=0&_17=1&_18=0&_19=1&_20=0&_21=1&_22=1&_23=1&_24=1&_25=1&_answer=1010100000011100101011111
+
+
+
+
+
+2)아무값이나 입력하면 name(사용자입력값), answer(퍼즐 풀었을 때의 값), ip가 출력된다.
+
+   (or,' -- 등 열심히 입력해봐도 그대로 출력이된다.)
+
+
+
+
+
+3)페이지  개발자 모드로 보면 answer값 (퍼즐에서검은색으로 넣었던 _1~_25값이 == $0으로 되어있다.  
+
+   hidden으로 정해진 값과 사용자 입력값을 이용해 db의 값을 출력해야할 것으로 예측할 수 있다.
+
+   answer의 값이 0이라면 그것을 1로 해주고 전송하면 될 거 같다
+
+
+
+
+
+4)
+
+answer부분의 값을 단순히 1로 변경하고 했는데 그대로 값이 들어가버린다. (1or1과 같이 해야겠다는 생각을 하게됐다.)
+
+ 
+
+answer부분에 or, -- 등을 입력하면 no hack으로 결과가 나오는 것을 보아 필터링이 적용된 것을 확인할 수 있다.
+
+
+
+or와 동일한  || 를 사용하기로 했다.  ( and == &&)
+
+
+
+
+
+기존 answer값 || 1 혹은 1||answer로 hidden 값을 변경하고 name값에는 논리적으로 true가 될 수 있는 값을 입력한다
+
+
+
+*예상) 
+
+select ip,name,answer from xxx answer && name(사용자 입력값)    또는 name(사용자 입력값) && answer형태로 있는 것을 예상할 수 있다.
+
+
+
+select ip, name, answer from xxx where answer= &&  name= ;로 되어있고
+
+(answer 값 맨앞에 1|| 혹은 맨뒤 ||1 )  
+
+
+
+select name, answer, ip from xxx 기존answer값||1 && name 
+
+또는  
+
+select name, answer, ip from xxx name && 기존answer값||1    이와 같이 동작되게 시도한다.
+
+
+
+name = 1 && answer      ->   1 && 1||0    또는     1 && 0||1
+
+answer && name=1        ->   1||0 && 1    또는     0||1 && 1
+
+
+
+위와 같은 4개의 경우로 값이 들어간다고 생각할 수 있다.
+
+
+
+
+
+5.기존 answer의 값을 변경하고 name 값을 1로 주어 시도하고 이전에 보지 못했던 결과가 나오고 answer로 플래그같이 생긴것이 나왔다. 플래그 입력하는 곳에 입력한 후 3번문제를 해결했다.
+
+
+
+
+
+
+
+
+
+4번문제
+
+Base64 인코딩된 값만 떡하니 보여줌.  끝에 =로 끝나 base64형태인것을 알 수 있다.
+
+
+
+base64로 디코딩 한 후 40글자의 hash값이 나온 것을 보아 길이40글자의 hash결과가 나오는 것은  구글링 한 후 sha1인것을 알게되었다.  (xxx) sha1 encode -> hash(string40)
+
+
+
+sha1으로 2번 디코딩한 후 test라는 값이 나옴.
+
+
+
+1.base64 decode -> c4033bff94b567a190e33faa551f411caef444f2
+
+
+
+2.c4033bff94b567a190e33faa551f411caef444f2  (sha1 decode) -> a94a8fe5ccb19ba61c4c0873d391e987982fbbd3
+
+
+
+3.a94a8fe5ccb19ba61c4c0873d391e987982fbbd3 (sha1 decode) ->
+
+test
+
+
+
+sha1가 단방향 해시 함수라고 해서 복호화가 쉽지 않다고 나오는데, 
+
+양방향과 단방향 해시에 관해서 설명 부탁드립니다!!
+
+
+
+
+
+
+
+
+
+5번
+
+1.login와 join php가 있다
+
+
+
+2.join은 access_denied
+
+
+
+3.log을 눌러 이동한 후 mem디렉토리 하위에 있는 것을 디렉토리 리스팅이 가능한지 시도한 후 mem디렉토리에 위치한 파일들이 보인다.
+
+
+
+4.join.php로 접근 후 페이지소스 보기를 하여 join.php의 소스를 볼 수 있게 됐다.
+
+
+
+5.
+
+/mem 디렉토리 리스팅이되어 join으로 들어가 페이지 소스보기를 하면 난독화되어있지만, 그걸 하나씩 대입해야겠다고 생각했다.
+
+
+
+Visual Studio Code에서 'Beauty'라는 Extensions을 이용해 전체선택 -> 정렬(Comman+Shift+B) 단축키로 정렬 후 하나하나씩 치환했다.(python으로 쉽게 치환하는 코드를 짜서 다시 올리겠습니다. 파이썬을 잘다루도록 공부하겠습니다.)
+
+
+
+ <html>
+
+<title>Challenge 5</title>
+
+</head>
+
+
+
+<body bgcolor=black>
+
+    <center>
+
+        <script>
+
+
+
+            if (eval(document.cookie).indexOf(oldzombie) == -1) {
+
+                bye;
+
+            }
+
+            if (eval(document.URL).indexOf(mode+'='+1) == -1) {
+
+                alert('access_denied');
+
+                history.go(-1);
+
+            } else {
+
+                document.write('<font size=2 color=white>Join</font><p>');
+
+                document.write('.<p>.<p>.<p>.<p>.<p>');
+
+                document.write('<form method=post action='+join.php+'>');
+
+                document.write('<table border=1><tr><td><font color=gray>id</font></td><td><input type=text name='+id+' maxlength=5></td></tr>');
+
+                document.write('<tr><td><font color=gray>pass</font></td><td><input type=text name='+pw+' maxlength=10></td></tr>');
+
+                document.write('<tr align=center><td colspan=2><input type=submit></td></tr></form></table>');
+
+            }
+
+        </script>
+
+</body>
+
+
+
+</html>
+
+
+
+6.
+
+소스를 분석해보니 
+
+cookie name oldzombie의  value를 1로 해야겠다고 생각했고, document.URL.indexOf()가 뭔지 찾아보니 브라우저에 요청한 URL 중 임의의 한글자가 위치하는 인덱슽 값을 리턴하는 것을 알게되었다. 없다면 -1이라는 값이 리턴되는 것도 알았다.
+
+
+
+eval이라는 것은 php코드로 평가한다고 하는데 이를 합치면 url에 mode=1가 존재하는지 안하는지 따지는 것으로 판단되어 join.php 요청 시 ?mode=1로 요청하면 정상적으로 join.php로 접근이 된다.
+
+
+
+
+
+7.
+
+7-1 admin 계정 획원가입 admin이라는 계정은 이미 있다고 한다.
+
+7-2아무거나 회원가입 성공 일반적으로 id태크부분에 길이가 5인데 길이를 조정해 hackyu6글자를 입력했다.
+
+
+
+
+
+8.
+
+login.php로 가서 hackyu로 로그인 시도하지만 admin이 아니라 로그인을 못한다고 한다.
+
+
+
+admin으로 접속을 해야만 문제를 해결할 수 있을 것이라고 생각했다.
+
+
+
+
+
+
+
+8.length=5 -> 5이상으로 바꾸고 admin 스페이스 하고 회원가입을 한다. 
+
+   admin / qwerqwer  비밀번호는 자유롭게해서 signup을 하고 login.php로 돌아가 로그인을 하면 성공한다.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+6번문제:
+
+
+
+1.6번문제 페이지 접근 후 hint와 index.phps, guest계정과 패스워드를 알려줬다.
+
+여기서 앞으로 풀어야되는 문제들 중 admin관련 문제라면 가볍게  guest를 입력해봐야겠다는 생각을 하게됐다.
+
+
+
+
+
+2.index.phps로 접근했더니 소스코드가 나왔다.(사진없이 카페에 코드 작성)
+
+<?php 
+
+if(!$_COOKIE[user]) 
+
+{ 
+
+    $val_id="guest"; 
+
+    $val_pw="123qwe"; 
+
+
+
+    for($i=0;$i<20;$i++) 
+
+    { 
+
+        $val_id=base64_encode($val_id); 
+
+        $val_pw=base64_encode($val_pw); 
+
+
+
+    } 
+
+
+
+    $val_id=str_replace("1","!",$val_id); 
+
+    $val_id=str_replace("2","@",$val_id); 
+
+    $val_id=str_replace("3","$",$val_id); 
+
+    $val_id=str_replace("4","^",$val_id); 
+
+    $val_id=str_replace("5","&",$val_id); 
+
+    $val_id=str_replace("6","*",$val_id); 
+
+    $val_id=str_replace("7","(",$val_id); 
+
+    $val_id=str_replace("8",")",$val_id); 
+
+
+
+    $val_pw=str_replace("1","!",$val_pw); 
+
+    $val_pw=str_replace("2","@",$val_pw); 
+
+    $val_pw=str_replace("3","$",$val_pw); 
+
+    $val_pw=str_replace("4","^",$val_pw); 
+
+    $val_pw=str_replace("5","&",$val_pw); 
+
+    $val_pw=str_replace("6","*",$val_pw); 
+
+    $val_pw=str_replace("7","(",$val_pw); 
+
+    $val_pw=str_replace("8",")",$val_pw); 
+
+
+
+    Setcookie("user",$val_id); 
+
+    Setcookie("password",$val_pw); 
+
+
+
+    echo("<meta http-equiv=refresh content=0>"); 
+
+} 
+
+?> 
+
+
+
+<html> 
+
+<head> 
+
+<title>Challenge 6</title> 
+
+<style type="text/css"> 
+
+body { background:black; color:white; font-size:10pt; } 
+
+</style> 
+
+</head> 
+
+<body> 
+
+
+
+<? 
+
+
+
+$decode_id=$_COOKIE[user]; 
+
+$decode_pw=$_COOKIE[password]; 
+
+
+
+$decode_id=str_replace("!","1",$decode_id); 
+
+$decode_id=str_replace("@","2",$decode_id); 
+
+$decode_id=str_replace("$","3",$decode_id); 
+
+$decode_id=str_replace("^","4",$decode_id); 
+
+$decode_id=str_replace("&","5",$decode_id); 
+
+$decode_id=str_replace("*","6",$decode_id); 
+
+$decode_id=str_replace("(","7",$decode_id); 
+
+$decode_id=str_replace(")","8",$decode_id); 
+
+
+
+$decode_pw=str_replace("!","1",$decode_pw); 
+
+$decode_pw=str_replace("@","2",$decode_pw); 
+
+$decode_pw=str_replace("$","3",$decode_pw); 
+
+$decode_pw=str_replace("^","4",$decode_pw); 
+
+$decode_pw=str_replace("&","5",$decode_pw); 
+
+$decode_pw=str_replace("*","6",$decode_pw); 
+
+$decode_pw=str_replace("(","7",$decode_pw); 
+
+$decode_pw=str_replace(")","8",$decode_pw); 
+
+
+
+
+
+for($i=0;$i<20;$i++) 
+
+{ 
+
+    $decode_id=base64_decode($decode_id); 
+
+    $decode_pw=base64_decode($decode_pw); 
+
+} 
+
+
+
+echo("<font style=background:silver;color:black>&nbsp;&nbsp;HINT : base64&nbsp;&nbsp;</font><hr><a href=index.phps style=color:yellow;>index.phps</a><br><br>"); 
+
+echo("ID : $decode_id<br>PW : $decode_pw<hr>"); 
+
+
+
+if($decode_id=="admin" && $decode_pw=="admin") 
+
+{ 
+
+    @solve(6,100); 
+
+} 
+
+
+
+
+
+?> 
+
+
+
+</body> 
+
+</html> 
+
+
+
+웹 접근시  cookie name user가 없다면 user와 password에 guest 123qwe를 각각 20번base64인코딩 시킨 후 cookie name user와 password 쿠키셋을 시킨다. 이후 base64 디코딩 20번을 한 결과가  각각 admin이 아니면 echo로 출력시킨다.
+
+
+
+처음 접속할 시 cookie name user가 없으니 바로 echo ID:guest PW:123qwe가 출력된것으로 생각할 수 있다.
+
+
+
+
+
+3.
+
+작성한 code
+
+
+
+import base64
+
+
+
+decode = base64.b64encode("admin")
+
+
+
+print decode
+
+
+
+for i in range(1,20):
+
+    a = base64.b64encode(decode)  
+
+    decode = a
+
+    
+
+print decode
+
+
+
+
+
+
+
+4.
+
+id, pw 값을 base64로 20번 인코딩한 값을 cookie값으로 set시킨다.
+
+cookie를 set 시키는 쿠키값을 base64 decode 20번을 한 결과가 admin으로 둘다 id, pw에 입력하고 새로고침을 하면 문제가 풀린다.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+7번 문제: 서버 문제 있는듯
+
+val=3)%0aunion%0aselect%0a(3-1
+
+val=3)%0aunion%0aselect%0a(1+1
+
+
+
+
+
+8번 문제:
+
+a
+
+
+
+9번 문제:
+
+a
+
+
+
+10번 문제:
+
+
+
+1.처음 첫페이지를 보면 별내용이 없다.
+
+그리고O가 있어서 마우스를 올려보면 YOU로 변경되고, 클릭을 하면 우로 한칸이 이동되는 것을 확인했다.(pos.style.left+=1일 것이라 판단함)
+
+그리고 개발자모드로 확인 해야겠다 라는 생각이 들었고 내부 내용을 살펴보았다. 
+
+j
+
+
+
+
+
+
+
+2.
+
+a태그 부분에 if(this.style.posleft=800)
+
+this.href?go=this.style.posleft 을 부분을 보면 편집을 통해 +1에서 100으로 변경 후 8번 우로 이동 혹은 800으로 설정해 한번에 이동하게 시도했다. 이후 문제 해결됨
+
+
+
+
+
+11번 문제:
+
+정규표현식에 대한 문제로 보인다. 정규표현식(Regular Expression)이란 특정한 규칙을 가진 문자열의 집합으로 말할 수 있다. 용도로는 특정 문자열의 검색, 치환하는데 쓰이는 것으로 알고 있다.
+$pat="/[1-3][a-f]{5}_.*211.187.167.36.*\tp\ta\ts\ts/"
+
+
+
+1~3사이중 하나
+
+a~f중하나
+
+{5} 반복
+
+_<- 아무의미없음(일반적으로/ / 사이에 문자열이 들어가니 _도 문자열에 들어가야하는 문자로 생각
+
+.(문자가 될 수 있는 모든 것 중 한 문자)
+
+*앞에 있는 문자 0부터 무한대로 반복
+
+\t 탭
+
+// /이 사이에 정규표현식이 들어간다./
+
+
+
+
+
+
+
+2.
+
+위의 정규표현식의 메타문자들의 뜻을 조사한 후 val이라는 변수에 정규표현식에 맞는 값을 넣어 파라미터로 전달을 시도하기로 생각했다. 탭 같은 경우는 \t로 시도해봤는데 나오지 않아 \t를 URL Encoding해서 시도함.
+
+
+
+(1~3 중 한글자) + (a~f 중 한글자) + _ + 랜덤한문자 + IP + 랜덤한문자 + \tp+\ta+\ts+\ts 
+
+
+
+
+
+
+
+
+
+
+
+
+
+12번 문제:
+
+
+
+JavaScript 문제라고 나온다.
+document.write(WorkTimeFun)
+
+
+
+
+
+
+
+2 
+
+
+
+javascript 코드.
+
+var enco='';
+
+var enco2=126;
+
+var enco3=33;
+
+var ck=document.URL.substr(document.URL.indexOf('='));
+
+ 
+
+ 
+
+for(i=1;i<122;i++)
+
+{
+
+enco=enco+String.fromCharCode(i,0);
+
+}
+
+ 
+
+function enco_(x)
+
+{
+
+return enco.charCodeAt(x);
+
+}
+
+ 
+
+if(ck=="="+String.fromCharCode(enco_(240))+String.fromCharCode(enco_(220))+String.fromCharCode(enco_(232))+String.fromCharCode(enco_(192))+String.fromCharCode(enco_(226))+String.fromCharCode(enco_(200))+String.fromCharCode(enco_(204))+String.fromCharCode(enco_(222-2))+String.fromCharCode(enco_(198))+"~~~~~~"+String.fromCharCode(enco2)+String.fromCharCode(enco3))
+
+{
+
+alert("Password is "+ck.replace("=",""));
+
+}
+
+
+
+코드분석결과  
+
+(33~ 121까지의 아스키코드 값) 중의 의 값으로 password가 조합될 것이라고 생각해볼 수 있다.)
+
+
+
+
+
+ String.fromCharCode( enco_(x){ enco.charCodeAt(x)})의 결과를 반복적으로 구해서 =를 공백으로 대체한 결과와 ck와 값이 일치하면 패스워드를 출력해주는 것으로 분석됐다.
+
+
+
+하지만 콘솔에 ck와 동일해야 하는 값을 확인하였고 'youaregod~~~~~~~!'라는  패스워드 같은 값이 나왔다.
+
+
+
+
+
+
+
+3.확인해보니 문제의 패스워드인 것을 알 수 있고 문제해결하였다.
+
+
+
+
+
+
+
+13번 문제:
+
+a
+
+
+
+14번 문제:
+
+1.document.URL은 현재 웹 문서의 위치를 나타낸다.
+
+자바스크립트 부분에을 보니 input_pwd.value 즉 사용자가 입력한 값이 ul값과 동일하면 패스워드가 나오는 것으로 보인다.
+
+
+
+2.
+
+ul값은 document.URL.indexOf(".kr")의 값 * 30으로 되어있고
+
+document.URL.indexOf(".kr") 는 즉 .kr 스트링의 시작하는 인덱스값으로 
+
+document.URL.indexOf(".kr")의 값 17 * 30 = 510으로 510을 입력하였고, 패스워드가 나와
+
+플래그 입력란에 입력 후 문제가 해결되었다.
+
+
+
+
+
+15번 문제:
+
+15번 문제같은경우는 15번문제 url 요청 후 response 값으로 alert가 나타나고, 이전페이지로 이동하는 history.go(1);로 인해 이전페이지로 이동하는 중간 패스워드를 텍스트로 보여준다.
+
+
+
+그냥 육안적을 봐도 보이고 버프슈트로 봐도 잡히지만, python으로 시도해보았다.
+
+*기존 로그인 되어있는 상태의 세션 아이디를 이용했습니다.
+
+
+
+15번 문제 python 코드
+
+import requests
+
+
+
+cookies={'PHPSESSID':'로그인 시 발급다은 세션 아이디'}
+
+
+
+url = "http://webhacking.kr/challenge/javascript/js2.html"
+
+
+
+request = requests.get(url,cookies=cookies)
+
+
+
+print(request.text)
+
+
+
+
+
+이후 패스워드가 나오고 플래그 입력란에 패스워드 입력 후 문제 해결하였다.
+
+
+
+
+
+16번 문제:
+
+16번 문제로 이동한 후 개발자모드로 내용을 보면서 아스키코드 124의 값을 입력 시 이동되는 것으로 보여
+
+124의 아스키코드인 '|'를 입력한 후 패스워드가 보이고 문제를 해결하였다.
+
+
+
+
+
+
+
+17번 문제:
+
+간단하게 자바스크립트 부분을 보고 문제해결하였다.
+
+
+
+
+
+
+
+18번 문제:
+
+if(eregi(" |/|\(|\)|\t|\||&|union|select|from|0x",$_GET[no])) exit("no hack"); 
+
+
+
+select id from challenge18_table where id='guest' and no=$_GET[no]
+
+
+
+기본적으로 guest로 설정되어있고 and연산자 이기에 피연산자 둘다 true가 나와야 정상적인 sql query가 된다.
+
+
+
+guest의 no컬럼의 값은 '1' 인것으로 입력해보면서 알 수 있고, 1 or 2 또는 1 or 3 등의
+
+1이외의 no값을 입력해 query의 결과가 admin이 나오게 시도했지만, 나오지 않았다.
+
+
+
+추가적으로 스페이스를 입력하면 no hack이라고 필터가 걸린것을 알 수 있고, 
+
+?no=0 or no=2와 같이 앞의 and부분의 true가 되면 뒤에서 or로 no의 값에 맞는 db값을 알아내기 위해 스페이스 우회 %0a(개행)으로 시도하여 문제 해결하였다.
+
+
+
+?no=0%0aor%0ano=2
+
+
+
+
+
+19번 문제:
+
+a
+
+
+
+
+
+
+
+
+
+20번 문제:
+
+자바스크립트 문제로 lv5frm.id.value, lv5frm.cmt.value,  lv5frm.hack.value 부분의 값이 빈칸이 아니고, lv5frm.hack.value과 lv5frm.attackme.value의 값이 동일하게 하면 된다. 문제 2초의 시간 제한내에 입력을 해야하므로 새로고침 후 콘솔창에 자바스크립트를 삽입하여 문제해결했다.
+
+
+
+
+
+21번 문제:
+
+a
+
+
+
+22번 문제:
+
+hackyu / qwer로 회원가입 잘되고, 로그인하면 hash가 나오고 그걸 풀어서 보면
+
+qwerzombie가 나온다. admin으로 로그인을 해야 문제가 풀리는건데
+
+admin의 패스워드를 모르고, 패스워드는 admin의 패스워드+zombie가 되어있을거라 생각했다.
+
+파이썬을 이용해 블라인드 sql injection 브루트포스를 시행한다.  22.py
+
+
+
+22.py 결과 : 2a93a7cea083c6e9e02c97ec5a5d715a
+
+
+
+md5 해시에 대한 디크립터 사이트를 이용해 확인한다.
+
+(해당 사이트는 md5해시에 대한 평문 등을 db로 관리해서 해당 사이트의 db에 일치하는 값이 없다면 hashcat과 같은 툴들을 이용해야 한다고 배웠다.)
+
+MD5Decode("2a93a7cea083c6e9e02c97ec5a5d715a") -> rainbowzombie
+
+
+
+
+
+
+
+
+
+23번 문제:
+
+1.<script>alert(1);</script>를 입력하는 문제이다.
+
+
+
+2.입력해보니 alert와 sciprt에 필터링이 걸려있는 것을 알게되었다.
+
+
+
+3.url의 null을 의미하는 %00을 알게되었고 시도하여 문제를 해결하였다
+
+
+
+ex script  ->  s%00c%00r%00i%00p%00t
+
+
+
+
+
+<s%00c%00r%00i%00p%00t%00>a%00l%00e%00r%00t%00(1);</s%00c%00r%00i%00p%00t%00>
+
+
+
+
+
+
+
+
+
+
+
+
+
+24번 문제:
+
+1.
+
+24번문제 첫페이지에 client ip와 agent 즉, 해당 페이지 요청시 서버측으로 전달된 client ip와 agent 정보가 출력된다.
+
+개발자모드에서 index.phps로 힌트가 주어져 index.phps로가서 소스를 확인하기로 했다.
+
+
+
+2.소스를 보니 요청한 ip가 127.0.0.1인 경우 문제가 해결되는 것으로 생각되었는데 몇가지 제약이 걸려있었다.
+
+
+
+if($_COOKIE[REMOTE_ADDR])
+
+{
+
+$ip=str_replace("12","",$ip);
+
+$ip=str_replace("7.","",$ip);
+
+$ip=str_replace("0.","",$ip);
+
+}
+
+
+
+이부분에서 str_replace함수로 $ip 값에 12가 있다면 공백으로, 7.을 공백으로 0.을 공백으로 대체하는 과정이 있어
+
+단순하게 127.0.0.1을 입력하면 공백 떄문에 1만 남게되는 상황이 된다.
+
+
+
+여러 방법을 생각하는중 xss 필터링 우회하는 방법중 예를들어
+
+select라는 문자열에 대해 select값을 공백으로 대체하는필터링이 걸려있고 이를 우회히려면 sselectelect와 같이
+
+안쪽의 select가 지워지고 그 겉에 있던 s와 elect가 결합되어 우회할 수 있는 방법이 생가났고 이와 비슷하게
+
+
+
+12.0.0.1   ->   112277..00..00..1로 시도하여 문제를 해결하였다.
+
+
+
+버프슈트를 이용해도되고 자바스크립트를 이용해서도 가능하다.
+
+
+
+javascript:document.cookie="REMOTE_ADDR=112277..00..00..1";
+
+
+
+
+
+해당 문제를 추가적으로 파이썬으로 127.0.0.1 변경하는것을 다시해 추가적 내용 채워 올리겠습니다
+
+
+
+
+
+
+
+
+
+25번 문제:
+
+문제에서 기본적으로 3게의 파일 목록을 보여주고 hello.txt  index.php password.phpr가 있다.
+
+password.php를 봐야겠다고 생각했고, 처음에 hello world라는 문구가 보여 hello.txt의 내용이 나오는 것이라 생각했다.
+
+
+
+URL에는 get방식으로 file파라미터에 hello로 되어있다.
+
+이후 file파라미터에 hello.txt hello index index.php password password.php 등 여러 시도를 해봐도 동일한 결과가 나왔다.
+
+
+
+중간중간 null인 %00을 추가하여 시도도 해보았지만, 결과는 동일했다. 문득 변수에 문자열을 초기화했을때 마지막 자리에 기null문자가 포함될 수 있다고 생각이 되어 마지막 부분을 %00으로 시도하여 문제를 해결하였다.
+
+
+
+
+
+
+
+
+
+26번 문제:
+
+1.소스를 보면 간단하게 get방식으로 id 파라미터를 보낼 때 admin으로 보내는지 필터링이 걸려있다.
+
+그리고 요청시 보냈던 id파라미터의 값을 서버측에서 url decode를 하고 이것이 admin일 경우 문제가 해결될 것으로 생각했다. 
+
+
+
+2.브라우저같은 경우 기본적으로 url인코딩을 해서 서버측으로 보내고, 서버측 php에서 decode과정을 한다는 내용이 있었다.
+
+
+
+admin 인코딩 3번 
+
+admin 디코딩 2번
+
+
+
+과정을 거치면 admin -> URL 인코딩 된 값이 admin과 같은지 비교학 될 것이라고 판단했다.
+
+즉, 보낼때 URL 인코딩을 2번해서 보내서 문제를 해결하였다.
+
+
+
+
+
+
+
+27번 문제:
+
+
+
+문제를 보고 바로 개발자모드로 -> index.phps의 소스를 보고 앞의 and 연산을 붕괴시키고 뒤의 or 연산자를 인젝션하기로 결정했다. 
+
+no와 id 컬럼을 둘다 or 연사자를 이용해서 쿼리를 뽑아낼 수 있을거라고 생각했다.
+
+
+
+python으로 admin을 이진수로로 구하고, sql의 like를 이용하여 문제해결하였다.
+
+
+
+python 
+
+>>> "admin".encode('hex')
+
+'61646d696e'
+
+>>> print bin(0x61646d696e)
+
+0b110000101100100011011010110100101101110
+
+
+
+빈칸 %20으로 우회
+
+--주석
+
+
+
+0)%20or%20id%20like%200b0110000101100100011011010110100101101110--%20
+
+
+
+0)%20or%20id%20like%200x61646d696e
+
+
+
+
+
+28번 문제:
+
+a
+
+
+
+29번 문제:
+
+a
+
+
+
+30번 문제:
+
+a
+
+
+
+31번 문제:
+
+포트포워딩해서 10000~10100 사이에 nc로 해놓고 해결
+
+
+
+32번 문제:
+
+버튼을 클릭하면 ve~~~어쩌구 쿠키에 1이 생성되고 그뒤에 클릭을 하면 alert no! 가 나옴
+
+쿠키가 생김없이  파이썬으로 100번 돌려 100/100 맞추면 문제해결
+
+
+
+33번 문제:
+
+
+
+<form>
+
+post<input type="text" name="post">
+
+post2<input type="text" name="post2">
+
+<input type="submit" name="submit">
+
+</form>
+
+
+
+
+
+
+
+34번 문제:
+
+a
+
+
+
+35번 문제:
+
+if(eregi("%|\*|/|=|from|select|x|-|#|\(\(",$_GET[phone])) exit("no hack");
+
+
+
+@mysql_query("insert into challenge35_list(id,ip,phone) values('$_SESSION[id]','$_SERVER[REMOTE_ADDR]',$_GET[phone])") or die("query error");
+
+echo("Done<br>");
+
+
+
+
+
+아무숫자),(admin,ip,아무숫자)"  숫자만 입력 가능 숫자를 char형태로 읽을 수 있게  char를 이용한다.
+
+
+
+$_GET[phone]요기에)
+
+1),(char(admin),char(ip),1
+
+
+
+문자 => 숫자로 ord
+
+숫자 => 문자로 chr
+
+
+
+id = admin
+
+ord 적용 admin 97,100,109,105,110
+
+
+
+ip
+
+ord 적용 아이피 xxx46xxx46xxx46xxx 
+
+*46은 아스키 문자 . 이다
+
+
+
+
+
+answer: ?phone=1),(char(97,100,109,105,110),char(49,55,53,46,49,57,55,46,53,49,46,53,53),1
+
+
+
+36번 문제:
+
+에디터 마다 임시파일이 저장되는 형태가 다르다고 배웠다.
+
+gedit 같은 경우는 파일명 뒤에 ~
+
+vi 같은 경우는 파일명 뒤에 .swp가 붙는다.
+
+
+
+힌트로  vi blackout 
+
+편집기 정전   -> 편집기를 이용하다 정전이났다. ?  
+
+vi를 사용하다가 꺼졌다. 에디터를 사용하다 꺼졋다. 편집기를 사용하다 꺼졌다.
+
+자동 임시파일저장이 되어있다면 임시파일로 저장이 될 것이다.
+
+ppt, doc, hwp 등처럼
+
+vi를 이용해서 임시적으로 복구 파일을 저장할 때 복구파일은 .파일명.swp     앞. 숨김파일 뒤에는 swap 스왑으로 저장이 된다.
+
+하지만 서브측에 .index.php.swp 등을 요청해도 해당 파일이 없다고 한다...
+
+
+
+
+
+37번 문제:
+
+index.phps로 소스도 캡쳐해야함
+
+해당 문제가 잘 이해 안됐지만, time값 -> tmp-time값으로 된 파일에 적혀있는 클라이언트의 아이피:7777로 패스워드를 보내준다.
+
+nc -nvl -p 7777로 (공유기 사용하므로 포트포워딩 해줌) 대기 하고 있고 python으로 요청 time값으로 된 파일이 서버에서 계속 생성되기에 그것을 맞춰서 돌리면된다. 100번정도 돌림
+
+
+
+
+
+
+
+38번 문제:
+
+해당 문제는 Log Injection이라고 한다. 로그도 인젝션이 될 수 있다는 것을 알게 해준 문제였다.
+
+
+
+여러 번 입력을 해보고 개발자모드에서 보이는 admin.php로 이동해보니 나의 아이피와 내가 입력했던게포트로 들어가 있는 것을 확인했다. 또한 admin.php를 개발자모드로 보았을 땐 hint로 admin이 써져있다.
+
+
+
+admin등을 여려번 입력 후 아이피:admin으로 입력 후 문제가 해결되었다.
+
+
+
+이 문제에서는 뭐가 중요한지 몰라 log injection에 간단히 찾아보니 유효하지 않은 사용자 입력값이 로그파일에 삽입이 된다면 그것을 악용이 가능하다고 보여져 로그관련 웹 문제가 나온다면 해당 문제를 상기시켜 도전해봐야겠다는 생각이 들었다.
+
+아이피:admin입력
+
+
+
+
+
+
+
+
+
+39번 문제:
+
+1.개발자모드에서 index.phps를 참고하라고 주석처리되어있다.
+
+
+
+그리고 입력을 받는 입력창이 있으니 sql문제들이 많아 ' 등 여러 문자들을 입력 해봤는데 에러가 난다.
+
+
+
+\\를 입력하면 공백이되고, '를 입력하면 ''가 된다.
+
+
+
+index.phps를 'select ~ 부분 싱글쿼터 ' 가 닫혀있지 않다.
+
+
+
+닫혀있지 않아서 나타난 에러인것을 알 수 있다.
+
+
+
+2.
+
+여러번 입력 한 후 substr함수에 대해서 찾아보고, 소스에서 0~15 인덱스까지만 값을 잘라 변수에 넣는 것을 알 수 있었다.  즉 총 들어갈 수 있는 글자수는 15개 
+
+ 
+
+-간략한 php substr함수 설명-
+
+substr(string,start) start부터 끝까지
+
+ex)
+
+$a = "abcdefg";
+
+echo substr($a,1)    결과:bcdefg   거기서부터~
+
+
+
+substr(string,i번째인덱스부터,i번째인덱스부터몇개)
+
+$a = "abcdefg";
+
+echo substr($a,2,3); 결과:cde      거기서몇개~
+
+
+
+select 부분에서 조건에서 id이고, select한 결과가 good으로 admin이냐, good 둘다될 거라고 생각하고 분석한 후 둘다 시도했다.
+
+
+
+첫번째:admin
+
+admin(0~4인덱스)스페이스9번(5~14인덱스) '(15인덱스) 
+
+
+
+두번쩨:good
+
+good(0~3인덱스)스페이스10번(4~14인덱스) '(15인덱스) 
+
+
+
+sql쿼리를 보아 '가 ''로 변하여 끝에 ''의 끝에가 짤린다면 일단 '하나는 15인덱스에 속해 값이 넘어가 코드에서 짝이 없는 '의 짝으로 맞춰줄 수 있을거라 생각했다. 위와 같이 시도해서 성공하였다.
+
+
+
+사실 우선적으로 admin으로 시도해서 문제해결하였고, good으로해도 무방할 거 같아 다시 시도한 결과 동일하게 풀리는 것을 확인했다.
+
+
+
+
+
+40번 문제:
+no=-1||if(no=2,1,0)
+
+답:luck_admin
+
+
+
+
+41번 문제:
+
+문제의도: 파일을 업로드하면 파일 내용에 password를 입력한다.
+자신이 업로드한 파일을 볼 수 있다면 password를 볼 수 있을거라고 예상할 수 있다.
+hidden을 어떻게 찾아야하나 이것이 문제이다.
+
+<  >   .를 ""(공백)으로 대체
+
+일부러 파일명을 공백으로 만들어 에러가 나게 해서 경로가 노출된다.
+
+
+
+
+
+
+
+
+42번 문제:
+
+1.test.zip에 access denied
+
+2.test.txt에는 접근가능한데 찾아볼 내용 없음
+
+3.페이지 소스보기
+
+4.test.txt요청시 down이라는 파라미터에 base64로 된 값을 넣어 페이지 이동이 됨.
+
+5.base64 디코드해보고 test.txt 즉 페이지 이동요청하는 페이지를 base64값으로 파라미터로 보내는 것으로 생각할 수 있음
+
+6.test.zip base64인코딩한 값을 ?down=로 보냄
+
+7.test.zip 다운로드 받아짐
+
+8.페이지 소스보기에서도 써있던것처럼 zip파일의 패스워드는 숫자로 되어있다고 되어 있고 실제 암호가 걸려 있음
+
+9.fcreackzip zip파일 패스워드 크랙툴을 이용해 패스워드 알아냄 852
+
+10.패스워드로 zip파일 내부에 readme.md파일이 생성됨 url이 적혀있음
+
+11.해당 url로 접근 시 패스워드 적혀있고 auth 답 입력하여 클리어
+
+
+
+answer key:123456789null0987654321
+
+
+
+43번 문제:
+
+1.
+
+파일업로드 취약점에 대한 문제이다.
+
+힌트로 filetype으로 주었고, 파일 타입을 변경하라는 것이다.
+
+
+
+2.
+
+
+
+3.
+
+burpsuite로 content-type에 text/php인 부분으로 전송되는 파일의 타입을 필터링 하는 것을 알 수 있게 됐다.
+
+
+
+4.
+
+content-type을 변경시도한다.
+
+
+
+5
+
+문제해결
+
+
+
+
+
+
+
+
+
+
+
+
+
+44번 문제:
+
+
+
+ls를 우회하는 거 같다
+
+answer 입력: '&l's > index/go.html
+
+
+
+45번 문제:
+
+answer : ?id = %aa%27%20or%20id=char(97,100,109,105,110)%23&pw=guest
+
+
+
+46번 문제:
+
+answer lv=0%0aor%0aid=char(97,100,109,105,110)
+
+
+
+47번 문제:
+
+
+
+main header injection 이 공격이 메일을 보낼 때 전달되는 헤더 부분에 공격이 가능한 인젝션이 가능하다고 나왔다.
+
+찾아보면 set-cookie를 할 수 있다던가, 다른 사이트로 URL리다이렉션을 시킬 수 있다고 한다.
+
+
+
+mail() 메일을 보내는 함수 
+
+
+
+구조
+
+main(to,subject,content,from)
+
+문제소스에서 from:$_post[$email]부분을 보면 from누구로 부터 ~ admin@webhacking.kr로 가느냐 인데 
+
+이때 from에다가 임의의 이메일 abc@naver.com\r\n\r\ncc:내이메일 와 같은 방식으로
+
+나의 이메일을 참조해서 내 이메일로 참조 메일이 보내져 패스워드가 보이게 하는 방식을 생각하게되었다.
+
+\r\n은 왜쓰는지 모르는데 블로그에 쓸 때 더 자세하게 찾아봐야할듯하다.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+48번 문제:
+
+
+
+파일을 올리고, 파일 내용확인해보고 null뜨고 막 이상하다~~~\
+
+upfile을 클릭하면 upload/업로드한 파일명으로 upload/[업로드한 파일명]이으로 url 입력란에서 확인할 수 있다.
+
+delete로는 올렸던 파일이 지워지는 것을 할 수 있다. rm [파일명]으로 서버에서 동작하는 것을 생각해 볼 수 있다. 리눅스가 아니라면 윈도우에서del [파일명]으로 생각해볼 수 있다.   element부분을 보니 mode=del&time=123131313 이렇게되어있음
+
+
+
+filename=;ls로 시도 후 현재 문제가 있는 경로에 존재하는 파일들 목록이 보인다.
+
+zwitter_admin.php가 보인다. 접속 후 문제 클리어
+
+
+
+
+
+
+
+
+
+49번 문제:
+
+a
+
+
+
+50번 문제:
+
+notacceptable 나옴...
+
+
+
+51번 문제:
+admin의 패스워드 183941
+이문제는 음... 급해서 걍 답보고해버렸따 
+md5("value",true)로     "ㅁ"="ㅌ"  일때 뭐 거짓이 참으로 된다나 뭐라나 일부러 틀리게 해서
+넣은값외의 값들이 나오게 해서 앞의 admin가 일치하게 하는거 같다.
+
+
+
+
+
+52번 문제:
+
+
+
+
+
+53번 문제:
+
+answer: http://webhacking.kr/challenge/web/web-27/?id=freakout%0aclear:%20freakout
+
+파이썬으로 안된다.... 시도해봐야한다.
+
+
+
+53번 문제:
+
+answer=http://webhacking.kr/challenge/web/web-28/index.php?val=4 procedure analyse()       val에 4 procedure analyse() 값을 주면 된다.
+
+
+
+54번 문제:
+
+a
+
+
+
+55번 문제:
+
+55번문제 auth: challenge55clear~~kk
+
+
+
+56번 문제:
+
+a
+
+
+
+57번 문제:
+
+자동화돌림~~!
+소스있음!! (근데 약간 맛이간거 같음 수정필요함)
+구한 답에 영어가 있는건 모든지 소문자로하라고 페이지에 써있었음
+answer key : 1058792495
+
+
+
+
+58번 문제:
+
+자바스크립트따라하고 .swf파일을 받아서 메모장으로 여니까 경로 나오고 경로 치니 문제 성공
+
+
+
+59번 문제:
+
+a
+
+
+
+60번 문제:
+
+a
+
+
+
+61번 문제:
+
+a
+

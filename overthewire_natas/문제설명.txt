@@ -1,0 +1,330 @@
+Each level of natas consists of its own website located at http://natasX.natas.labs.overthewire.org, 
+
+
+All passwords are also stored in /etc/natas_webpass/.
+
+
+답과 설명은 지금 이 텍스트 파일에 사진은 폴더에
+
+
+natas 1의 플래그 == natas2의 패스워드
+
+
+natas 0 
+flags:gtVrDuiDfck831PqWsLEZy5gyDz1clto
+문제설명:간단히 패스워드는 이 페이지에 있다고 함 페이지소스 보기를 한 후 패스워드를 간단히 얻을 수 있다.
+
+
+natas 1
+flag:ZluruAthQk7Q2MqmDeTiUij2ZvWy2mBi
+문제설명:간단히 페이지에 뭐라고 쓰여있고, 내용이 가려져 있다. 블락이 뭐 가려져 있다 했지만 간단히 페이지소스 보기를 한 후 패스워드를 간단히 얻을 수 있다.
+
+
+natas 2
+flag:sJIJNW6ucpu6HPZ1ZAchaDtwd7oGrD14
+문제설명:해당 페이지에 패스워드가 없다고 한다. 페이지 소스보기를 한 후 별로 볼 게 없었지만, png파일이 있는 것을 알 수 있다. 디렉토리 인덱싱 취약점이 있는지 확인하기 위해 files 까지만 입력 후 해당 디렉토리 내에 user.txt 파일에 플래그가 있는 것을 확인했다.
+
+
+natas 3
+flag:Z9tkRkWmpt9Qr7XrR5jWRkgOU901swEZ  
+문제설명: 구글도 못찾을거다. 음...  이문제는 참. "힝! 구글ㄷ 웹 로봇 검색엔진 크롤러를 이용한 자동으로도 못찾을걸?" 이 느낌으로 웹 봇을 이용한 크롤링, 봇으로의 접근을 제어하기 위해 robots.txt를 사용한다.
+구글하면 검색엔진이 떠올라서 이 문제를 만들었나보다.   웹 봇, 검색엔진을 통한 크롤러 등의 접근을 제어하기 위해 reobots.txt에 명세하여 제어할 수 있다는 것을 알고 넘어가자.
+
+ex) 
+User-Agent: * 
+Disallow: /abc
+
+모든 웹 봇에 대해 /abc 경로로의 접근을 제한한다인듯
+
+natas 4
+flag:iX6IOfmpN7AYOQGPwtn3fXpbaJVJcHfq
+문제설명:허용되지 않은 접근을 시도했다고 한다. 오로지 http://natas5.natas.labs.overthewire.org/에서 접근을 시도한 것에 대해서 접근을 허용한다고 한다. 
+버프슈트로 referer을 http://natas5.natas.labs.overthewire.org/ 로 변경해서 접근 시도하여 문제 해결
+
+
+natas 5 
+flag:aGoY4q2Dc6MgDq4oL4YtoKtyAg9PeHa1
+문제설명: 아이디, 패스워드를 입력한 후 로그인을 시도했더니 로그인이 안되어있다고 한다. 쿠키값을 확인해보니 해당 로그인확인을 아이디 패스워드 외에도 loggedin cookie의 값이 0, 1로 로그인이 되었는지 아닌지 구별하는것으로 보인다.
+
+None, 0x00, \x00
+
+data
+{
+submit:None,
+secret:FOEIUWGHFEEUHOFUOIU
+}
+
+
+
+array('submit' => null, 'secret' => "FOEIUWGHFEEUHOFUOIU");
+
+
+natas 6
+flag:7z3hEENjQtflzgnT29q7wAvMNfZdh0i9
+문제설명:소스보다보면 .inc 파일 경로가 있다. 그대로 입력하면 클리어
+
+
+natat7
+flag:DBfUBfqQG69KvJvJ1iAbMoIpwSNQ9bWe
+문제설명:page에 입력한 페이지를 보여줌.
+
+
+natas8
+flag:W0mMhUcRRnG8dcghE4qvk3JA9lGt8nDl
+문제설명:
+문제를 보면 파라미터로 넘어가는 값 secret 값과 함수의 결과값이 일치하는지 비교한다.
+
+함수에서 보면 순서가 base64 -> strrev -> hex2bin으로 base64 함수의 결과가 strrev로 순서가 뒤집히고 그에 대한 hex값이 secret으로 입력한 것과 동일한지 비교한다.
+
+문제의 소스에서 주어진 3d3d516343746d4d6d6c315669563362 값을 비교하는 함수의 역으로 hex decode, strrev, base64decode를 거치면 된다.
+
+
+[코드]
+import base64
+
+hexdecode = '3d3d516343746d4d6d6c315669563362'.decode('hex')
+print "\'3d3d516343746d4d6d6c315669563362\' hexdecode  : ",hexdecode,"\n"
+
+strrev = ''.join(reversed(hexdecode))
+print "strrev : ",strrev,"\n"
+
+secret = base64.b64decode(strrev)
+
+print "secret : ",secret
+
+natas9    ********** 이해잘못함   스페이스가 어떻게해서 먹히는지
+flag: nOpp1igQAkUzaI1GUUjzn1bFVj7xCNzu
+문제설명: 코드인젝션이 가능한 함수에 명령어를 입력하여 다음 레벨인 natas10의 패스워드를 가지는 /etc/natas_webpass/natas10을 출력한다.
+grep -i; (깨지고)cat /etc/natas_webpass_/natas10 ;(해도되고 안해도되고 안붙이면 document.txt의 내용도 출력된다.)
+
+앞의명령실행하고;뒤에거 실행하라.
+
+문제풀때 ;cat ls -l /etc/natas_webpass/; 한다음에 ;cat /etc/natas_webpass/natas10;을 함
+
+궁금한게 스페이스가 있으면 안되는 부분을 코드로 인식해서 스페이스를 해도 코드로 인식이 되서 그런것인지..
+
+코드인젝션이 가능한 함수들과 코드화와 명령화? 부분이 좀 어렵다.
+
+
+natas10   ********** 이해잘못함  왜 .인지
+flag:U82q5TCMMQ9xuFoI3dYX61s7OZD9JKoK
+문제설명:;와 & |가 막혀있다.
+리눅스에서 한글자?? all *를 이용해야겠다고 생각하고
+
+grep -i . cat /natas_webpass/natas11
+이러면 cat 없다면 뒤에 내용이 출력이 된당
+
+왜 되는지....
+.은 과연.... 
+
+
+natas11   ************ 이해잘못함.
+flag:EDXp0pS26wLKHZy1rDBPUZk0RKfLGIR3
+문제설명:
+
+문제코드를 잘 이해못했다. base64와 XOR 문제의 소스를 이해를 못했다.
+
+ClVLIh4ASCsCBE8lAxMacFMOXTlTWxooFhRXJh4FGnBTVF4sFxFeLFMK로 data cookie를 바꾸고 새로고침 했다. 반드시 11번 문제는 내가 납득이 갈만큼 다시 돌아보자
+
+
+
+natas12
+flag:jmLTY0qiPZBbaKc9341cqPQZBJv7MQbY
+문제설명: 사진 파일을 업로드하라는데, 용량이 너무 작다. 요즘 웬만한 사진 파일들의 용량이 아니다.
+문제를 보자마자 passthru와 같은 시스템 명령을 하는 함수를 이용해 natas13의 패스워드를 알아내야겠다고 생각했고 다른 확장자들의 파일을 올려보닉 그대로 올라가고 파일 확장자를 .jpg를 붙여서 업로들되는 것을 소스를 보고 알았고, 버프슈트를 이용해 확장자를 변경 후 해결
+
+
+natas13
+flag:Lg96M10TdfaPyVBkJdjymbllQ5L6qdl1
+문제설명:파일유형 변경
+GIF를 붙였는데 신기하네 좀 더 찾아보자
+
+
+
+natas14
+flag:AwWj0w5cvxrZiONgZ9J5stNVkmxdk39J
+문제설명:간단히 ""로 id와 pw가 감싸져있어서 and연산자이기에 둘다 1로 만들어주면 되어서 해결함
+1 "or 1#
+
+
+natas15
+flag: WaIHEacj63wnNIBROHeqi3p9t0m5nhmh
+문제설명: 맞아도 있다고하고 틀려도 없다고 하고 블라인드 sql인젝션!!!!
+
+lord of sql injection때는 플래그를 마냥 대문자에서 소문자로 넣으면 됐는데, natas는 플래그가 대소문자를 구분해서 ord를 써야할 거 같다.
+
+먼저 소스를 보면 natas16의 패스워드 길이를 구하고, 이후에 플래그 각 자리별 알맞은 값을 구하는 코드이다.
+
+natas16
+flag:
+문제설명:
+
+natas17
+flag:
+문제설명:
+
+natas18
+flag:
+문제설명:
+
+natas19
+flag:
+문제설명:
+
+natas20
+flag:	IFekPyrQXftziDEsUr3x21sYuahypdgJ
+문제설명:
+
+natas21
+flag: chG9fbe1Tq2eWVMgjYYD1MsfIvN461kJ
+문제설명: 세션 입력 문제이다.
+
+세션 값에 admin이 1이 되도록 하면 문제가 풀린다.
+
+submit,$REQUEST 부분은 Request 요청에 submit이 존재하고, 요청한 값들을 키, 밸류로 세션값으로 저장하는부분을 포인트로 잡아 admin=1로 파라미터를 보내 해당 세션의 값으로 admin:1 와 같이 키밸류로 고정하면된다.
+debug -> 현재 세션 값들을 출력
+
+
+이 문제를 풀면서 
+<?php 
+echo phpinfo();
+
+
+?>
+를 통해 php 설정에 대해 알 수 있는 것을 알았고, 세션이라는 것이 무엇인지 태범형님이 잘 설명해주셨다.
+클라이언트     서버
+
+1. 클라이언트가 서버에 웹 요청함.
+2. 서버가 세션을 생성하고 파일로 관리하기 때문에 파일로 만들고 클라이언트에게 세션을 준다
+3. 클라이언트 서버에 요청할 시 자신을 증명, 서버에서 검증하도록 쿠키를 보낸다.
+4. 클라이언트의 쿠키 정보를 확인하여 개발자가 설계한 로직대로 기능이 동작된다.
+
+세션(파일), 세션값
+
+세션값을 int, dictionary, array 등으로 저장될 수 있당. 이외에도 더 저장하는 방식이 있을거다.
+
+
+natas22
+flag: D0vlad33nQF0Hz2EP255TP5wSW9ZsRSE
+문제설명: 리다이렉션을 해결하는 문제이다.
+
+서버측 PHP 코드에서 revelio로 get요청이 들어올 때 admin이 아니면 location('/')의 응답과 플래그를 출력 시키는 부분이 있다.
+
+즉, 문제는 사실 revelio파라미터를 이용한 get요청을 하면 해결되는 것이다.
+
+하지만 문제는 서버측에서 admin=1 세션값이 아닌 경우 리다이렉션을 시키게 응답을 하므로 이를 우회해야한다.
+하지만 여기서 취약점이 발생한다. 이유는 리다이렉션을 시키고 exit()와 같이 바로 클라이언트가 리다이렉션되는 페이지로 이동되게 하고 끝내면 되는데 아래 코드부분에서 플래그를 출력하게 하는 부분까지 동작하게 되게 되어 있다.
+
+하지만 클라이언트의 브라우저는 서버측으로 부터의 응답 즉, 리다이렉션을 바로 동작하기에 브라우저를 통해서는 출력되는 플래그를 볼 수 없다.
+
+즉,
+1.요청
+2.서버 -> admin=1아니니 location('/') 리다이렉션 부분(클라이언트가 응답받았을 때 동작되게 하기 위한), 플래그 출력되는 부분 실행하고 응답한다.
+3.클라이언트의 브라우저는 바로 리다이렉션이 되어 출력 결과를 볼 수 없음
+
+문제를 풀 수 있는 2가지 방법이 있다.
+
+1)curl --user natas22:chG9fbe1Tq2eWVMgjYYD1MsfIvN461kJ http://natas22.natas.labs.overthewire.org/index.php\?revelio\=1
+
+-> curl은 리다이렉션 말고 자신이 요청했던 해당 페이지의 응답만을 받는다. (해당 요청의 결과가 그대로 받음, 응답에 대한 요청을 바로 하지 않기 때문에)
+
+2)22.py 코드 
+requests모듈의 response로 결과 페이지를 요청하면 리다이렉션이 된 페이지의 결과를 보지만,requests 모듈 response.history를 이용하여 현재 페이지의 리다이렉션되기 전인 이전 페이지의 내용을 확인할 수 있다.
+
+
+natas23
+flag: OsRmXFguozKpTZZ5X14zNO43379LZveg
+문제설명: 문제를 그냥 던져준 느낌이다.
+Request요청시 passwd파라미터가 존재하는지 확인하고, passwd로 들어온 값이 strstr($_REQUEST["passwd"],iloveyou)와 $_REQUEST["passwd"]가 길이 10이상이면 문제가 해결된다.'
+
+strstr함수를 테스트하고 가볍게 문제 클리어 
+
+strstr함수는 문자열에서 문자열을 거를 때 어디 기준을 가지고 하는 것으로 간단하게 생각해볼 수 있다.
+default로 false이며 해당 문자열부터 문자열을 뽑아내고, true이면 해당 문자 나오기 전까지의 문자열을 뽑아내는것으로 확인할 수 있다. 해당문제는 strstr함수의 false 설정으로 인한 길이검증이 무의미해지게 할 수 있는 방식으로 풀 수 있다.
+
+직접 서버에 소스를 그대로 테스트하니 편하다.
+sql이든 php든 직접 환경을 구축하고 테스트를 해야겠다.
+
+
+natas24
+flag: GHF6X7YwACaYYssHVY05cFq83hRktl4c
+문제설명:
+참고URL
+http://hackability.kr/entry/PHP-strcmp-%EC%B7%A8%EC%95%BD%EC%A0%90%EC%9D%84-%EC%9D%B4%EC%9A%A9%ED%95%9C-%EC%9D%B8%EC%A6%9D-%EC%9A%B0%ED%9A%8C 
+
+strcmp의 취약점에 관해 태범이형 블로그에 잘 정리되어있다.
+strcmp($a,$b) strcmp 함수는 a가 b보다 작으면 음수, 같으면 0, a가 b보다 크면
+즉, PHP5.3+ 버전
+
+natas25
+flag:oGgWAJ7zcGT28vYazGo4rkhOPDhBu34T
+문제설명: 해당파일이 존재하면 include해서 해당 파일내에 있는 내용을 보여주는 소스로 분석한다(라이트업 올릴때는 더 자세하게 파서 올려야 함.) User-Agent에 php코드를 넣어 readfile natas26패스워드파일 응 풀음
+
+
+
+natas26
+flag: 55TBjpPZUUJgVP5b3BnbG6ON9uDPVzCJ
+문제설명:
+
+
+natas27
+flag: JWwR438wkgTsNKBbcJoowyysdM82YjeF
+문제설명:
+varchar(64)이다.  64크기 보다 큰 아이디를 입력 시 64뒤에는 짤려서 insert가 된다.
+
+문제점1 valid에서 username만 체크한다.
+아이디를 select하고 존재허면 패스워드까지 검증, 존재하지 않으면 create user
+varchar(64)보다 큰 값을 입력했을 시 64뒤에는 trim, 짤리기에 짤리만큼 username과 password가 insert 된다. 
+
+* 그냥 스페이스 1~2개로 해선 안되고, 짤려서 억지로 스페이스가 허용되어 계정이 insert되는것이다.
+
+즉, db에는
+natas28  flag
+natas28(스페이스 졸라 많은) , ""  <- 패스워드를 공백으로 입력했으니
+
+문제점 2 check credential에서 select 시
+select시 username과 password를 검사할 때 졸라 많은 공백으로 insert된것과 패스워드없는 natas28이 존재하기에 -> true가 되어 다음 로직인 dumpData로 이어질 수 있다.
+
+문제점 3 dumpData에서 username만 체크한다.
+자 처음부터 다시 생각해보면 natas28이 이미 존재했다.
+이후 스페이스 졸라 많은 natas28 및 패스워드 natas28이 다음 레코드로 존재한다.
+
+여기서 간단히 db에서 select를 해도 이전에 존재했던 레코드가 상위로 나온다.
+당연히 여러 개가 있는 경우 상위의 것이 사용되기에 기존에 있던 natas28의 덤프데이터가 출력이 된다.
+
+
+
+natas28
+flag: airooCaiseiyee8he8xongien9euhe8b
+문제설명: 패딩블록암호에 관해 알아야 풀 수 있는 문제인거 같은데 잘모르겠다 패스
+
+natas29
+flag:
+문제설명:
+
+natas30
+flag:
+문제설명:
+
+natas31
+flag:
+문제설명:
+
+natas32
+flag:
+문제설명:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

